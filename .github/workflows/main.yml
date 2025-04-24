@@ -61,21 +61,9 @@ jobs:
           make bootstrap
           make deploy
 
-      - name: Smoke Test
+      - name: Integration Tests
         run: |
-          awslocal --version
-          awslocal lambda invoke --cli-binary-format raw-in-base64-out --function-name my-lambda-rds-query-helper --payload '{"sqlQuery": "show tables", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
-          echo "show tables:"
-          cat output
-          awslocal lambda invoke --cli-binary-format raw-in-base64-out --function-name my-lambda-rds-query-helper --payload '{"sqlQuery": "select Author from Books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
-          echo "select Author from Books:"
-          cat output
-          return_status=$(cat output | jq -r .status)
-          if [ "SUCCESS" !=  ${return_status} ]; then
-            echo "unexpected response: ${return_status}"
-            cat output
-            exit 1
-          fi
+          npm test
 
       - name: Show Logs
         if: always()
