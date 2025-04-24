@@ -1,14 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as cdk from '@aws-cdk/core'
-import { CfnOutput, Duration, Stack, Token } from '@aws-cdk/core'
+import * as cdk from 'aws-cdk-lib'
+import { CfnOutput, Duration, Stack, Token } from 'aws-cdk-lib'
 import { CdkResourceInitializer } from '../lib/resource-initializer'
-import { DockerImageCode } from '@aws-cdk/aws-lambda'
-import { InstanceClass, InstanceSize, InstanceType, Port, SubnetType, Vpc } from '@aws-cdk/aws-ec2'
-import { RetentionDays } from '@aws-cdk/aws-logs'
-import { Credentials, DatabaseInstance, DatabaseInstanceEngine, DatabaseSecret, MysqlEngineVersion } from '@aws-cdk/aws-rds'
-import * as lambda from '@aws-cdk/aws-lambda'
+import { DockerImageCode } from 'aws-cdk-lib/aws-lambda'
+import { InstanceClass, InstanceSize, InstanceType, Port, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2'
+import { RetentionDays } from 'aws-cdk-lib/aws-logs'
+import { Credentials, DatabaseInstance, DatabaseInstanceEngine, DatabaseSecret, MysqlEngineVersion } from 'aws-cdk-lib/aws-rds'
+import * as lambda from 'aws-cdk-lib/aws-lambda'
 
 
 export class RdsInitStackExample extends Stack {
@@ -30,7 +30,7 @@ export class RdsInitStackExample extends Stack {
       },{
         cidrMask: 24,
         name: 'compute',
-        subnetType: SubnetType.PRIVATE_WITH_NAT,
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
       },{
         cidrMask: 28,
         name: 'rds',
@@ -67,7 +67,7 @@ export class RdsInitStackExample extends Stack {
       fnSecurityGroups: [],
       vpc,
       subnetsSelection: vpc.selectSubnets({
-        subnetType: SubnetType.PRIVATE_WITH_NAT
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS
       })
     })
     // manage resources dependency
@@ -83,7 +83,7 @@ export class RdsInitStackExample extends Stack {
     const lambdaQuery = new lambda.Function(this, 'MyLambdaRDSQueryHelper', {
       code: new lambda.AssetCode(`${__dirname}/rds-query-fn-code`),
       handler: 'index.handler',
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(300),
       functionName: "my-lambda-rds-query-helper"

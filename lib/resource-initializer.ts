@@ -1,12 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as ec2 from '@aws-cdk/aws-ec2'
-import * as lambda from '@aws-cdk/aws-lambda'
-import { Construct, Duration, Stack } from '@aws-cdk/core'
-import { AwsCustomResource, AwsCustomResourcePolicy, AwsSdkCall, PhysicalResourceId } from '@aws-cdk/custom-resources'
-import { RetentionDays } from '@aws-cdk/aws-logs'
-import { PolicyStatement, Role, ServicePrincipal } from '@aws-cdk/aws-iam'
+import * as ec2 from 'aws-cdk-lib/aws-ec2'
+import * as lambda from 'aws-cdk-lib/aws-lambda'
+import { Construct } from 'constructs'
+import { Duration, Stack } from 'aws-cdk-lib'
+import { AwsCustomResource, AwsCustomResourcePolicy, AwsSdkCall, PhysicalResourceId } from 'aws-cdk-lib/custom-resources'
+import { RetentionDays } from 'aws-cdk-lib/aws-logs'
+import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam'
 import { createHash } from 'crypto'
 
 export interface CdkResourceInitializerProps {
@@ -37,15 +38,14 @@ export class CdkResourceInitializer extends Construct {
     })
 
     const fn = new lambda.DockerImageFunction(this, 'ResourceInitializerFn', {
-      memorySize: props.fnMemorySize || 128,
+      memorySize: props.fnMemorySize || 128,
       functionName: `${id}-ResInit${stack.stackName}`,
       code: props.fnCode,
       vpcSubnets: props.vpc.selectSubnets(props.subnetsSelection),
       vpc: props.vpc,
       securityGroups: [fnSg, ...props.fnSecurityGroups],
       timeout: props.fnTimeout,
-      logRetention: props.fnLogRetention,
-      allowAllOutbound: true
+      logRetention: props.fnLogRetention
     })
 
     const payload: string = JSON.stringify({
