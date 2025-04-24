@@ -94,7 +94,6 @@ jobs:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
           localstack pod load sample-cdk-rds
-          sleep 10 # Wait for the Cloud Pod to be ready
 
       - name: Install dependencies
         run: |
