@@ -32,6 +32,11 @@ jobs:
         run: |
           make install
 
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk-local aws-cdk
+          cdklocal --version
+
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.4
         with:
@@ -48,8 +53,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          make build
-          make bootstrap
           make deploy
 
       - name: Integration Tests
