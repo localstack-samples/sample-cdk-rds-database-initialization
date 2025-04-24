@@ -58,7 +58,7 @@ jobs:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
           message="Cloud Pod created: sample-cdk-rds on $(date) with workflow run id: ${{ github.run_id }}"
-          localstack pod save sample-cdk-rds --visibility public --message "$message"
+          localstack pod save sample-cdk-rds --message "$message"
 
       - name: Show LocalStack Logs
         if: always()
