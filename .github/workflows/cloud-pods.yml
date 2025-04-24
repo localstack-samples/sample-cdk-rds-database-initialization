@@ -68,7 +68,7 @@ jobs:
 
   test-cloud-pod:
     name: Test Cloud Pod
-    # needs: create-cloud-pod
+    needs: create-cloud-pod
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
