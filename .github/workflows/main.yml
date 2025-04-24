@@ -1,4 +1,4 @@
-name: Deploy on LocalStack 
+name: Deploy on LocalStack with CDK
 
 on:
   push:
