@@ -34,13 +34,6 @@ const secretsClient = new SecretsManagerClient(config);
 const s3Client = new S3Client(config);
 
 describe('CDK RDS Stack', () => {
-  test('Stack synthesizes successfully', () => {
-    const app = new cdk.App();
-    const stack = new cdk.Stack(app, 'TestStack');
-    const template = Template.fromStack(stack);
-    expect(template).toBeDefined();
-  });
-
   test('Lambda function exists', async () => {
     try {
       const command = new GetFunctionCommand({
@@ -126,4 +119,4 @@ describe('CDK RDS Stack', () => {
       expect(error).toBeFalsy(); 
     }
   });
-}); 
+});
