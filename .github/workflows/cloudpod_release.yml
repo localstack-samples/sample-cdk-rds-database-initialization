@@ -1,0 +1,53 @@
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        type: string
+        required: true
+  push:
+    paths-ignore:
+      - 'README.md'
+    branches:
+      - main
+            
+permissions:
+  contents: write
+
+name: Create Release
+jobs:
+  build:
+    uses: ./.github/workflows/setup.yml
+    secrets: inherit
+    with:
+      store-cloudpod: "true"
+      localstack-version: ${{ inputs.release-tag || 'latest'}}
+  upload:
+    needs: build
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Pod Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cloudpod
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Prepare Release Notes
+        run: |
+          echo "This release includes the Cloud Pod of the sample created with LocalStack Version \`${{ inputs.release-tag || 'latest'}}\`." > Release.txt
+          echo "### MySQL" >> Release.txt
+          echo "The pod was created with `mysql` engine." >> Release.txt
+          echo "You can click the Launchpad to inject the \`mysql\` version of the pod into your running LocalStack instance:" >> Release.txt
+          echo "[![LocalStack Pods Launchpad](https://localstack.cloud/gh/launch-pod-badge.svg)](https://app.localstack.cloud/launchpad?url=https://github.com/$GITHUB_REPOSITORY/releases/download/${{ inputs.release-tag || 'latest'}}/release-pod-mysql.zip)" >> Release.txt
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "${{ inputs.release-tag || 'latest'}}"
+          name: "Cloud Pod for LocalStack Version '${{ inputs.release-tag || 'latest'}}'"
+          body_path: ./Release.txt
+          files: |
+              ./release-pod-mysql.zip

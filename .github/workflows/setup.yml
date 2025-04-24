@@ -1,21 +1,16 @@
-name: Deploy on LocalStack 
-
+name: Setup Sample with LocalStack
 on:
-  push:
-    paths-ignore:
-      - 'README.md'
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  schedule:
-    # “At 00:00 on Sunday.”
-    - cron: "0 0 * * 0"
-  workflow_dispatch:
-
+  workflow_call:
+    inputs:
+      store-cloudpod:
+        required: true
+        type: string
+      localstack-version:
+        required: true
+        type: string
+      
 jobs:
-  smoke-test:
+  setup-localstack:
     name: Setup infrastructure
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +38,7 @@ jobs:
         run: |
           mkdir ls_test
           ls -la ls_test
-          docker pull localstack/localstack-pro:latest
+          docker pull localstack/localstack-pro:${{ inputs.localstack-version }}
           # Start LocalStack in the background
           LS_LOG=trace localstack start -d
           # Wait 30 seconds for the LocalStack container to become ready before timing out
@@ -61,36 +56,22 @@ jobs:
           make bootstrap
           make deploy
 
+      # TODO should we run smoke tests before creating the pod?
       - name: Run Smoke Tests
         run: |
           ./test-helper/smoke-test.sh
 
-      - name: Show Logs
-        if: always()
-        run: |
-          localstack logs
-
-      - name: Send a Slack notification
-        if: failure() || github.event_name != 'pull_request'
-        uses: ravsamhq/notify-slack-action@v2
+      - name: Save the Cloud Pod 
+        if: ${{ inputs.store-cloudpod == 'true' }}
+        uses: HarshCasper/cloud-pod-save@v0.1.0
         with:
-          status: ${{ job.status }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          notification_title: "{workflow} has {status_message}"
-          message_format: "{emoji} *{workflow}* {status_message} in <{repo_url}|{repo}>"
-          footer: "Linked Repo <{repo_url}|{repo}> | <{run_url}|View Workflow run>"
-          notify_when: "failure"
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          name: 'release-pod-mysql.zip'
+          location: 'disk'
 
-      - name: Generate a Diagnostic Report
-        if: failure()
-        run: |
-          curl -s localhost:4566/_localstack/diagnose | gzip -cf > diagnose.json.gz
-
-      - name: Upload the Diagnostic Report
-        if: failure()
-        uses: actions/upload-artifact@v4
+      - name: Upload Pod as Artifact
+        if: ${{ inputs.store-cloudpod == 'true' }}
+        uses: actions/upload-artifact@v3
         with:
-          name: diagnose.json.gz
-          path: ./diagnose.json.gz
+          name: cloudpod
+          path: release-pod-mysql.zip
+          retention-days: 1
