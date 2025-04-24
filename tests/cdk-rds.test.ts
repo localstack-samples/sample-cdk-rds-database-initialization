@@ -19,6 +19,9 @@ import {
   ListBucketsCommand 
 } from '@aws-sdk/client-s3';
 
+// Increase timeout for all tests to 30 seconds
+jest.setTimeout(30000);
+
 const config = {
   endpoint: 'http://localhost:4566',
   region: 'us-east-1',
@@ -34,6 +37,12 @@ const secretsClient = new SecretsManagerClient(config);
 const s3Client = new S3Client(config);
 
 describe('CDK RDS Stack', () => {
+  // Add beforeAll to ensure LocalStack is ready
+  beforeAll(async () => {
+    // Wait for a few seconds to ensure LocalStack is fully initialized
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  });
+
   test('Lambda function exists', async () => {
     try {
       const command = new GetFunctionCommand({
