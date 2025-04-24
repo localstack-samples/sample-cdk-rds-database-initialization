@@ -32,6 +32,11 @@ jobs:
         run: |
           make install
 
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk-local aws-cdk
+          cdklocal --version
+
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.4
         with:
