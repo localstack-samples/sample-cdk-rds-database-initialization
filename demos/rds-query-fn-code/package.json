@@ -1,5 +1,5 @@
 {
-    "name": "rds-init-script",
+    "name": "rds-query-fn",
     "version": "1.0.0",
     "description": "Source code for querying RDS instance using Node.js",
     "main": "index.js",
@@ -9,7 +9,8 @@
     "author": "",
     "license": "MIT",
     "dependencies": {
-      "mysql2": "^3.3.1",
-      "dotenv": "^16.0.3"
+      "@aws-sdk/client-secrets-manager": "^3.0.0",
+      "mysql2": "^3.0.0",
+      "dotenv": "^16.0.0"
     }
   }
