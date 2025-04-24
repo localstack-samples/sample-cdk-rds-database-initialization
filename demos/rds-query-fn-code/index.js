@@ -1,5 +1,5 @@
 const mysql = require('mysql2')
-const AWS = require('aws-sdk')
+const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager')
 require('dotenv').config();
 
 // the env AWS_ENDPOINT_URL is automatically injected and available
@@ -8,11 +8,13 @@ const url = new URL(endpoint);
 const hostname = url.hostname;
 
 // configure the secretsmanager to connect to the running LocalStack instance
-const secrets = new AWS.SecretsManager({ 
+const secrets = new SecretsManagerClient({ 
   endpoint: endpoint,
-  accessKeyId: 'test',
-  secretAccessKey: 'test',
-  region: 'us-east-1',
+  credentials: {
+    accessKeyId: 'test',
+    secretAccessKey: 'test'
+  },
+  region: 'us-east-1'
 })
 
 // the function expects "secretName" and "sqlQuery" as payload
@@ -59,12 +61,12 @@ function query (connection, sql) {
   })
 }
 
-function getSecretValue (secretId) {
-  return new Promise((resolve, reject) => {
-    secrets.getSecretValue({ SecretId: secretId }, (err, data) => {
-      if (err) return reject(err)
-
-      return resolve(JSON.parse(data.SecretString))
-    })
-  })
+async function getSecretValue (secretId) {
+  try {
+    const command = new GetSecretValueCommand({ SecretId: secretId })
+    const response = await secrets.send(command)
+    return JSON.parse(response.SecretString)
+  } catch (error) {
+    throw error
+  }
 }

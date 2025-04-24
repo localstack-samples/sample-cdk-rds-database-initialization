@@ -3,7 +3,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as cdk from '@aws-cdk/core'
+import * as cdk from 'aws-cdk-lib'
 import { RdsInitStackExample } from '../demos/rds-init-example'
 
 const app = new cdk.App()
