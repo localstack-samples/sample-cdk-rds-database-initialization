@@ -9,5 +9,3 @@ node_modules
 cdk.out
 
 .npmrc
-
-package-lock.json

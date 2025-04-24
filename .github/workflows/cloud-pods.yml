@@ -1,25 +1,24 @@
-name: Deploy on LocalStack with CDK
+name: Create and Test Cloud Pods
 
 on:
-  push:
-    paths-ignore:
-      - 'README.md'
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   schedule:
-    # “At 00:00 on Sunday.”
-    - cron: "0 0 * * 0"
+    # At 00:00 on Saturday.
+    - cron: "0 0 * * 6"
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
-  integration-tests:
-    name: Run Integration Tests
+  create-cloud-pod:
+    name: Create Cloud Pods
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Nodejs
@@ -33,7 +32,7 @@ jobs:
           make install
 
       - name: Start LocalStack
-        uses: LocalStack/setup-localstack@v0.2.4
+        uses: LocalStack/setup-localstack@main
         with:
           image-tag: 'latest'
           use-pro: 'true'
@@ -52,11 +51,56 @@ jobs:
           make bootstrap
           make deploy
 
-      - name: Integration Tests
+      - name: Create Cloud Pod
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+        run: |
+          message="Cloud Pod created: sample-cdk-rds on $(date) with workflow run id: ${{ github.run_id }}"
+          localstack pod save sample-cdk-rds --message "$message"
+
+      - name: Show LocalStack Logs
+        if: always()
+        run: |
+          localstack logs
+
+  test-cloud-pod:
+    name: Test Cloud Pod
+    needs: create-cloud-pod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Start LocalStack
+        uses: LocalStack/setup-localstack@main
+        with:
+          use-pro: 'true'
+          install-awslocal: 'true'
+        env:
+          DEBUG: 1
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+
+      - name: Load Cloud Pod
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+        run: |
+          localstack pod load sample-cdk-rds
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run Integration Tests
         run: |
           npm test
 
-      - name: Show Logs
+      - name: Show LocalStack Logs
         if: always()
         run: |
           localstack logs
