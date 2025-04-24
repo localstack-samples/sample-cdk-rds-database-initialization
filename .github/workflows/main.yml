@@ -15,8 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  smoke-test:
-    name: Setup infrastructure
+  integration-tests:
+    name: Run Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
