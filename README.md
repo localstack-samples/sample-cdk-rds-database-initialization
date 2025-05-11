@@ -98,24 +98,13 @@ This function requires two parameters:
 - `sqlQuery`, which specifies the SQL command to execute
 -  `secretName`, which provides the name of the secret containing the database connection details.
 
-To run a query using AWS CLI version 1, you can invoke the Lambda function with the following command:
+To run a query using AWS CLI, you can invoke the Lambda function with the following command:
 
 ```shell
-awslocal lambda invoke \
-  --function-name my-lambda-rds-query-helper \
-  --payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
+make run
 ```
 
-If you are using AWS CLI version 2, the command must include an additional flag for payload formatting:
-
-```shell
-awslocal lambda invoke \
-  --cli-binary-format raw-in-base64-out \
-  --function-name my-lambda-rds-query-helper \
-  --payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
-```
-
-After invoking the function, you can view the results using the command `cat output`. The output will contain the execution status and results, for example:
+The output will contain the execution status and results, for example:
 
 ```shell
 {"status":"SUCCESS","results":[{"Author":"Jane Doe"},{"Author":"Jane Doe"},{"Author":"LocalStack"}]}

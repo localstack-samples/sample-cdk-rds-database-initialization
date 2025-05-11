@@ -55,11 +55,6 @@ jobs:
         run: |
           make deploy
 
-      - name: Run AWS CLI command
-        run: |
-          sleep 10
-          make run
-
       - name: Integration Tests
         run: |
           make test
