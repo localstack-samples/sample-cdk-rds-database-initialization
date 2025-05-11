@@ -55,9 +55,13 @@ jobs:
         run: |
           make deploy
 
+      - name: Run AWS CLI command
+        run: |
+          make run
+
       - name: Integration Tests
         run: |
-          npm test
+          make test
 
       - name: Show Logs
         if: always()

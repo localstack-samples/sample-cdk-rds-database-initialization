@@ -42,6 +42,24 @@ test:			## Run the tests
 		npm test
 		@echo "Tests completed successfully."
 
+run:			## Execute a SQL query through the Lambda function
+		@echo "Executing SQL query through Lambda function..."
+		@aws_version=$$(aws --version | grep -o "aws-cli/[0-9]*" | cut -d'/' -f2); \
+		if [ "$$aws_version" = "2" ]; then \
+			echo "Using AWS CLI version 2 command format..."; \
+			awslocal lambda invoke \
+				--cli-binary-format raw-in-base64-out \
+				--function-name my-lambda-rds-query-helper \
+				--payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output; \
+		else \
+			echo "Using AWS CLI version 1 command format..."; \
+			awslocal lambda invoke \
+				--function-name my-lambda-rds-query-helper \
+				--payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output; \
+		fi
+		@echo "Query execution completed. Results:"
+		@cat output
+
 start:			## Start LocalStack in detached mode
 		@echo "Starting LocalStack..."
 		@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
