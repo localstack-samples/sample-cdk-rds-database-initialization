@@ -14,7 +14,7 @@
 
 The Amazon RDS initialization using CDK sample application demonstrates how LocalStack supports RDS instances initialization using CDK and CloudFormation Custom Resources. The sample application implements a Node.js Lambda function for compute layer, which is able to run custom SQL scripts. It also executes custom commands supported by the [Node.js client for MySQL2](https://www.npmjs.com/package/mysql2). To test this application sample, we will demonstrate how you use LocalStack to deploy the infrastructure on your developer machine and your CI environment and use a Lambda function to run queries against the RDS database after successful deployment.
 
-## Architecture Diagram
+## Architecture
 
 The following diagram shows the architecture that this sample application builds and deploys:
 
@@ -91,14 +91,6 @@ CDK deployed successfully.
 
 ## Testing
 
-## Use Cases
-
-## Summary
-
-## Learn more
-
-## Test the Sample
-
 The sample application sets up the database by creating tables and inserting dummy data. It includes a Lambda function named `my-lambda-rds-query-helper`, which is used to run SQL queries against the RDS database.
 
 This function requires two parameters: 
@@ -127,6 +119,12 @@ After invoking the function, you can view the results using the command `cat out
 
 ```shell
 {"status":"SUCCESS","results":[{"Author":"Jane Doe"},{"Author":"Jane Doe"},{"Author":"LocalStack"}]}
+```
+
+You can run full end-to-end integration tests using the following command:
+
+```shell
+make test
 ```
 
 ## Use Cases
