@@ -57,6 +57,7 @@ jobs:
 
       - name: Run AWS CLI command
         run: |
+          sleep 10
           make run
 
       - name: Integration Tests
