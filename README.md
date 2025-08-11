@@ -18,7 +18,7 @@ The Amazon RDS initialization using CDK sample application demonstrates how Loca
 
 The following diagram shows the architecture that this sample application builds and deploys:
 
-![Architecture Diagram demonstrating Amazon RDS initialization using CDK](images/architecture-diagram.png)
+![Architecture Diagram demonstrating Amazon RDS initialization using CDK](images/architecture.png)
 
 * [RDS](https://docs.localstack.cloud/user-guide/aws/rds/) as the central part of the sample application which is initialized and pre-filled with data.
 * [Lambda](https://docs.localstack.cloud/user-guide/aws/lambda/) to initialize the database, and query data
