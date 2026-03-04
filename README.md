@@ -48,6 +48,7 @@ Then, navigate to the project directory:
 ```shell
 cd sample-cdk-rds-database-initialization
 ```
+
 Next, install the project dependencies by running the following command:
 
 ```shell
