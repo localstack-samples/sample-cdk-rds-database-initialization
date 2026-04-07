@@ -7,6 +7,9 @@ const fs = require('fs')
 const path = require('path')
 require('dotenv').config();
 
+const DB_CONNECT_RETRY_MAX_ATTEMPTS = Number.parseInt(process.env.DB_CONNECT_RETRY_MAX_ATTEMPTS || '24', 10)
+const DB_CONNECT_RETRY_DELAY_MS = Number.parseInt(process.env.DB_CONNECT_RETRY_DELAY_MS || '5000', 10)
+
 // the env AWS_ENDPOINT_URL is automatically injected and available
 const endpoint = process.env.AWS_ENDPOINT_URL;
 const url = new URL(endpoint);
@@ -21,19 +24,10 @@ const secrets = new AWS.SecretsManager({
 })
 
 exports.handler = async (e) => {
+  let connection
   try {
     const { config } = e.params
-    const { password, username, dbname, port } = await getSecretValue(config.credsSecretName)
-    const connection = mysql.createConnection({
-      host: hostname,
-      user: username,
-      database: dbname,
-      port,
-      password,
-      multipleStatements: true
-    })
-
-    connection.connect()
+    connection = await createConnectionWithRetry(config.credsSecretName)
 
     const sqlScript = fs.readFileSync(path.join(__dirname, 'script.sql')).toString()
     const res = await query(connection, sqlScript)
@@ -48,6 +42,10 @@ exports.handler = async (e) => {
       err,
       message: err.message
     }
+  } finally {
+    if (connection) {
+      await closeConnection(connection)
+    }
   }
 }
 
@@ -58,6 +56,61 @@ function query (connection, sql) {
 
       return resolve(res)
     })
+  })
+}
+
+async function createConnectionWithRetry (connectionConfig) {
+  let lastError
+  for (let attempt = 1; attempt <= DB_CONNECT_RETRY_MAX_ATTEMPTS; attempt += 1) {
+    const { password, username, dbname, port } = await getSecretValue(connectionConfig)
+    const connection = mysql.createConnection({
+      host: hostname,
+      user: username,
+      database: dbname,
+      port,
+      password,
+      multipleStatements: true
+    })
+    try {
+      await connect(connection)
+      return connection
+    } catch (error) {
+      connection.destroy()
+      lastError = error
+      if (!shouldRetryConnectionError(error) || attempt === DB_CONNECT_RETRY_MAX_ATTEMPTS) {
+        break
+      }
+
+      const retryInSeconds = DB_CONNECT_RETRY_DELAY_MS / 1000
+      console.log(`Database connection attempt ${attempt}/${DB_CONNECT_RETRY_MAX_ATTEMPTS} failed (port=${port}) with '${error.code || error.message}'. Retrying in ${retryInSeconds}s...`)
+      await sleep(DB_CONNECT_RETRY_DELAY_MS)
+    }
+  }
+
+  throw lastError
+}
+
+function connect (connection) {
+  return new Promise((resolve, reject) => {
+    connection.connect((error) => {
+      if (error) return reject(error)
+
+      return resolve()
+    })
+  })
+}
+
+function shouldRetryConnectionError (error) {
+  return ['ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENOTFOUND', 'PROTOCOL_CONNECTION_LOST'].includes(error?.code)
+}
+
+function sleep (delayMs) {
+  return new Promise((resolve) => setTimeout(resolve, delayMs))
+}
+
+function closeConnection (connection) {
+  return new Promise((resolve) => {
+    connection.end(() => resolve())
   })
 }
 
