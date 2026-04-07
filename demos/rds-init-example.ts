@@ -72,6 +72,10 @@ export class RdsInitStackExample extends Stack {
     })
     // manage resources dependency
     initializer.customResource.node.addDependency(dbServer)
+    const credsAttachment = creds.node.tryFindChild('Attachment')
+    if (credsAttachment) {
+      initializer.customResource.node.addDependency(credsAttachment)
+    }
 
     // allow the initializer function to connect to the RDS instance
     dbServer.connections.allowFrom(initializer.function, Port.tcp(3306)) // note: not required for LocalStack

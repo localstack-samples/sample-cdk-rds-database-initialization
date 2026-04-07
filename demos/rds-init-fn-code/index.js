@@ -27,15 +27,7 @@ exports.handler = async (e) => {
   let connection
   try {
     const { config } = e.params
-    const { password, username, dbname, port } = await getSecretValue(config.credsSecretName)
-    connection = await createConnectionWithRetry({
-      host: hostname,
-      user: username,
-      database: dbname,
-      port,
-      password,
-      multipleStatements: true
-    })
+    connection = await createConnectionWithRetry(config.credsSecretName)
 
     const sqlScript = fs.readFileSync(path.join(__dirname, 'script.sql')).toString()
     const res = await query(connection, sqlScript)
@@ -70,7 +62,15 @@ function query (connection, sql) {
 async function createConnectionWithRetry (connectionConfig) {
   let lastError
   for (let attempt = 1; attempt <= DB_CONNECT_RETRY_MAX_ATTEMPTS; attempt += 1) {
-    const connection = mysql.createConnection(connectionConfig)
+    const { password, username, dbname, port } = await getSecretValue(connectionConfig)
+    const connection = mysql.createConnection({
+      host: hostname,
+      user: username,
+      database: dbname,
+      port,
+      password,
+      multipleStatements: true
+    })
     try {
       await connect(connection)
       return connection
@@ -82,7 +82,7 @@ async function createConnectionWithRetry (connectionConfig) {
       }
 
       const retryInSeconds = DB_CONNECT_RETRY_DELAY_MS / 1000
-      console.log(`Database connection attempt ${attempt}/${DB_CONNECT_RETRY_MAX_ATTEMPTS} failed with '${error.code || error.message}'. Retrying in ${retryInSeconds}s...`)
+      console.log(`Database connection attempt ${attempt}/${DB_CONNECT_RETRY_MAX_ATTEMPTS} failed (port=${port}) with '${error.code || error.message}'. Retrying in ${retryInSeconds}s...`)
       await sleep(DB_CONNECT_RETRY_DELAY_MS)
     }
   }
