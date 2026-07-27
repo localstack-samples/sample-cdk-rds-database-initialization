@@ -31,20 +31,17 @@ jobs:
         run: |
           make install
 
-      - name: Install CDK
+
+      - name: Install lstk
         run: |
-          npm install -g aws-cdk-local aws-cdk
-          cdklocal --version
+          npm install -g @localstack/lstk
 
       - name: Start LocalStack
-        uses: LocalStack/setup-localstack@main
-        with:
-          image-tag: 'latest'
-          use-pro: 'true'
-          configuration: LS_LOG=trace
-          install-awslocal: 'true'
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          LOCALSTACK_LS_LOG: trace
+        run: |
+          lstk start
 
       - name: Deploy the application
         env: 
@@ -58,13 +55,12 @@ jobs:
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
-          message="Cloud Pod created: sample-cdk-rds on $(date) with workflow run id: ${{ github.run_id }}"
-          localstack pod save sample-cdk-rds --message "$message"
+          lstk snapshot save pod:sample-cdk-rds
 
       - name: Show LocalStack Logs
         if: always()
         run: |
-          localstack logs
+          lstk logs
 
   test-cloud-pod:
     name: Test Cloud Pod
@@ -80,20 +76,22 @@ jobs:
           node-version: 22
           cache: 'npm'
 
+      - name: Install lstk
+        run: |
+          npm install -g @localstack/lstk
+
       - name: Start LocalStack
-        uses: LocalStack/setup-localstack@main
-        with:
-          use-pro: 'true'
-          install-awslocal: 'true'
         env:
-          DEBUG: 1
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          LOCALSTACK_DEBUG: 1
+        run: |
+          lstk start
 
       - name: Load Cloud Pod
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
-          localstack pod load sample-cdk-rds
+          lstk snapshot load pod:sample-cdk-rds
 
       - name: Install dependencies
         run: |
@@ -106,7 +104,7 @@ jobs:
       - name: Show LocalStack Logs
         if: always()
         run: |
-          localstack logs
+          lstk logs
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
