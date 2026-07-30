@@ -32,20 +32,20 @@ jobs:
         run: |
           make install
 
+      - name: Install lstk
+        run: |
+          npm install -g @localstack/lstk
+
       - name: Install CDK
         run: |
-          npm install -g aws-cdk-local aws-cdk
-          cdklocal --version
+          npm install -g aws-cdk
 
       - name: Start LocalStack
-        uses: LocalStack/setup-localstack@v0.2.4
-        with:
-          image-tag: 'latest'
-          use-pro: 'true'
-          configuration: LS_LOG=trace
-          install-awslocal: 'true'
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          LOCALSTACK_LS_LOG: trace
+        run: |
+          lstk start
 
       - name: Deploy the application
         env: 
@@ -62,7 +62,7 @@ jobs:
       - name: Show Logs
         if: always()
         run: |
-          localstack logs
+          lstk logs
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'

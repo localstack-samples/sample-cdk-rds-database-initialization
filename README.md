@@ -27,9 +27,9 @@ The following diagram shows the architecture that this sample application builds
 ## Prerequisites
 
 - A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
-- [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
-- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) with the [`awslocal` wrapper](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
-- [CDK](https://docs.localstack.cloud/user-guide/integrations/aws-cdk/) with the [`cdklocal`](https://www.npmjs.com/package/aws-cdk-local) wrapper.
+- [`lstk` CLI](https://docs.localstack.cloud/aws/tooling/lstk/).
+- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) with the [`lstk aws` proxy](https://docs.localstack.cloud/aws/tooling/lstk/).
+- [CDK](https://docs.localstack.cloud/user-guide/integrations/aws-cdk/) with the [`lstk cdk` proxy](https://docs.localstack.cloud/aws/tooling/lstk/).
 - [Node.js](https://nodejs.org/en/download/)
 - [`make`](https://www.gnu.org/software/make/) (**optional**, but recommended for running the sample application)
 
@@ -60,8 +60,7 @@ make install
 Start LocalStack with the `LOCALSTACK_AUTH_TOKEN` pre-configured:
 
 ```shell
-localstack auth set-token <your-auth-token>
-localstack start
+lstk start
 ```
 > [!NOTE]
 > By default, LocalStack uses the MariaDB engine (see [RDS documentation](https://docs.localstack.cloud/user-guide/aws/rds/#mysql-engine)). 
@@ -104,7 +103,7 @@ This function requires two parameters:
 To run a query using AWS CLI version 1, you can invoke the Lambda function with the following command:
 
 ```shell
-awslocal lambda invoke \
+lstk aws lambda invoke \
   --function-name my-lambda-rds-query-helper \
   --payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
 ```
@@ -112,7 +111,7 @@ awslocal lambda invoke \
 If you are using AWS CLI version 2, the command must include an additional flag for payload formatting:
 
 ```shell
-awslocal lambda invoke \
+lstk aws lambda invoke \
   --cli-binary-format raw-in-base64-out \
   --function-name my-lambda-rds-query-helper \
   --payload '{"sqlQuery": "select Author from books", "secretName":"/rdsinitexample/rds/creds/mysql-01"}' output
