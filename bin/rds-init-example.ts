@@ -9,4 +9,5 @@ import { RdsInitStackExample } from '../demos/rds-init-example'
 const app = new cdk.App()
 
 /* eslint no-new: 0 */
-new RdsInitStackExample(app, 'RdsInitExample')
+const rds_init_stack = new RdsInitStackExample(app, 'RdsInitExample')
+cdk.Tags.of(rds_init_stack).add('aws-apn-id', 'pc:9yq38ki5jw5mas7jhjthpgveo')
